@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFC Protected Website</title>
+    <script>
+        async function scanNFC() {
+            if (!('NDEFReader' in window)) {
+                alert('NFC scanning not supported on this device/browser.');
+                return;
+            }
+            
+            try {
+                const ndef = new NDEFReader();
+                await ndef.scan();
+
+                ndef.addEventListener("reading", async ({ message }) => {
+                    let nfcContent = "";
+                    
+                    for (const record of message.records) {
+                        const textDecoder = new TextDecoder();
+                        nfcContent = textDecoder.decode(record.data);
+                    }
+
+                    console.log("NFC Data:", nfcContent);
+
+                    const allowedContent = "04:17:5e:a5:72:26:81"; // Your NFC tag's stored data
+                    
+                    if (nfcContent === allowedContent) {
+                        document.getElementById("accessMessage").innerText = "Access Granted!";
+                        document.getElementById("protectedContent").style.display = "block";
+                    } else {
+                        document.getElementById("accessMessage").innerText = "Access Denied!";
+                    }
+                });
+
+            } catch (error) {
+                console.error("NFC Scan Failed:", error);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>NFC Protected Website</h1>
+    <button onclick="scanNFC()">Tap NFC to Unlock</button>
+    <p id="accessMessage"></p>
+    <div id="protectedContent" style="display:none;">
+        <h2>Welcome to the Secure Area!</h2>
+        <p>This content is only visible if you scan the correct NFC tag.</p>
+    </div>
+</body>
+</html>
